@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from datetime import datetime, timedelta
 from bleak import BleakScanner
 from bleak.backends.device import BLEDevice
@@ -7,13 +6,8 @@ from bleak.backends.scanner import AdvertisementData
 from struct import unpack
 
 
-def _log(event):
-    logging.info(event)
-    return event
-
-
-_CALLBACKS=[_log]
-_RATELIMIT=1
+_CALLBACKS=[]
+_RATELIMIT=60
 _RATELIMIT_TRACKER={}
 
 
@@ -59,8 +53,7 @@ def _on_event(device: BLEDevice, advertisement_data: AdvertisementData):
             if datetime.now() - _RATELIMIT_TRACKER[event['MAC']] < timedelta(seconds=_RATELIMIT):
                 return
 
-        else:
-            _RATELIMIT_TRACKER[event['MAC']] = event['Timestamp']
+        _RATELIMIT_TRACKER[event['MAC']] = event['Timestamp']
 
         for call_fn in _CALLBACKS:
             event = call_fn(event)
